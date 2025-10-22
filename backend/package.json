@@ -1,17 +1,19 @@
 {
   "name": "ssas-backend",
   "version": "1.0.0",
-"scripts": {
-  "start": "concurrently \"npm run dev:gateway\" \"npm run dev:data\" \"npm run dev:ai\"",
-  "dev:gateway": "nodemon --watch gateway gateway/index.js --exec node --experimental-modules",
-  "dev:data": "nodemon --watch data-service data-service/index.js --exec node --experimental-modules",
-  "dev:ai": "nodemon --watch ai-service ai-service/index.js --exec node --experimental-modules"
-},
-
-
-  
+  "scripts": {
+    "start": "concurrently \"npm run dev:gateway\" \"npm run dev:data\" \"npm run dev:ai\"",
+    "dev:gateway": "nodemon --watch gateway gateway/index.js --exec node --experimental-modules",
+    "dev:data": "nodemon --watch data-service data-service/index.js --exec node --experimental-modules",
+    "dev:ai": "nodemon --watch ../ai-service ../ai-service/index.js --exec node --experimental-modules"
+  },
   "dependencies": {
+    "axios": "^1.12.2",
     "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "morgan": "^1.10.1",
     "mysql2": "^3.15.2"
   },
   "description": "",

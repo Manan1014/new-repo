@@ -10,6 +10,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "ml-regression": "^6.3.0",
     "morgan": "^1.10.0",
     "openai": "^6.6.0"
   },

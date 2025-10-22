@@ -70,5 +70,5 @@ app.get("/data/sample", (req, res) => {
   res.json(sampleData);
 });
 
-const PORT = process.env.DATA_SERVICE_PORT || 5000;
+const PORT = process.env.DATA_SERVICE_PORT || 5001;
 app.listen(PORT, () => console.log(`🧩 Data Service running on port ${PORT}`));

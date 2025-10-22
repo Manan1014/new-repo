@@ -27,7 +27,6 @@ app.post("/ask", async (req, res) => {
 app.post("/forecast", async (req, res) => {
   try {
     const { data } = req.body;
-    console.log("Received forecast request with data:", data);
     
     // Create a prompt for sales forecasting
     const prompt = `
@@ -81,4 +80,4 @@ app.post("/forecast", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("🤖 AI service running on port 5000"));
+app.listen(5000, () => console.log("AI service running on port 5000"));

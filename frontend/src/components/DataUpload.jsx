@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
-import axios from "axios";
+import { uploadSalesData } from "../api";
 import {
   LineChart,
   Line,
@@ -11,17 +11,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const GATEWAY_URL = "http://localhost:4000"; // gateway -> /api/forecast
-
 export default function DataUpload() {
-  const [mode, setMode] = useState("manual"); // "manual" or "upload"
+  const [mode, setMode] = useState("manual");
   const [rows, setRows] = useState([{ date: "", price: "", quantity: "" }]);
   const [uploadedRows, setUploadedRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // ✅ Helper: sanitize each row and normalize date
   const sanitizeRow = (r) => {
     const getField = (pattern, fallback) =>
       Object.keys(r).find((key) => key.toLowerCase().includes(pattern)) ||
@@ -33,24 +30,16 @@ export default function DataUpload() {
 
     let dateValue = r[dateField];
 
-    // --- Excel serial date (e.g., 45678) ---
     if (typeof dateValue === "number" && dateValue > 1000) {
       const parsed = XLSX.SSF.parse_date_code(dateValue);
       if (parsed) {
         const { y, m, d } = parsed;
-        dateValue = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(
-          2,
-          "0"
-        )}`;
+        dateValue = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       }
-    }
-    // --- JS Date object ---
-    else if (dateValue instanceof Date) {
+    } else if (dateValue instanceof Date) {
       dateValue = dateValue.toISOString().split("T")[0];
-    }
-    // --- String date ---
-    else if (typeof dateValue === "string") {
-      const clean = dateValue.trim().replace(/\./g, "-").replace(/\//g, "-");
+    } else if (typeof dateValue === "string") {
+      const clean = dateValue.trim().replace(/[./]/g, "-");
       const parsed = new Date(clean);
       if (!isNaN(parsed)) {
         dateValue = parsed.toISOString().split("T")[0];
@@ -65,7 +54,6 @@ export default function DataUpload() {
     };
   };
 
-  // --- Manual entry handlers ---
   const handleAddRow = () =>
     setRows([...rows, { date: "", price: "", quantity: "" }]);
 
@@ -76,8 +64,6 @@ export default function DataUpload() {
     copy[idx][field] = value;
     setRows(copy);
   };
-
-  // --- File upload handler ---
   const handleFileChange = async (e) => {
     setError("");
     const file = e.target.files?.[0];
@@ -86,27 +72,22 @@ export default function DataUpload() {
     try {
       let json;
       if (file.name.toLowerCase().endsWith(".csv")) {
-        // CSV parsing
         const text = await file.text();
         const wb = XLSX.read(text, { type: "string" });
         const sheet = wb.Sheets[wb.SheetNames[0]];
         json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
       } else {
-        // Excel parsing
         const arrayBuffer = await file.arrayBuffer();
         const wb = XLSX.read(arrayBuffer, { cellDates: true });
         const sheet = wb.Sheets[wb.SheetNames[0]];
         json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
       }
 
-      console.log("Raw Excel data:", json);
-
       if (!json || json.length === 0) {
         setError("Excel file appears to be empty or has no data rows.");
         return;
       }
 
-      // Check columns
       const firstRow = json[0];
       const hasDate = Object.keys(firstRow).some((k) =>
         k.toLowerCase().includes("date")
@@ -129,9 +110,7 @@ export default function DataUpload() {
         return;
       }
 
-      // Sanitize & validate
       const converted = json.map(sanitizeRow);
-      console.log("Converted:", converted);
 
       const validRows = converted.filter(
         (r) => r.date && !isNaN(r.price) && !isNaN(r.quantity)
@@ -146,7 +125,7 @@ export default function DataUpload() {
 
       if (validRows.length < converted.length) {
         setError(
-          `⚠️ Only ${validRows.length} of ${converted.length} rows are valid.`
+          `Only ${validRows.length} of ${converted.length} rows are valid.`
         );
       }
 
@@ -160,7 +139,6 @@ export default function DataUpload() {
     }
   };
 
-  // --- Prepare data ---
   const getPayloadFromManual = () =>
     rows.map((r) => ({
       date: r.date,
@@ -171,8 +149,6 @@ export default function DataUpload() {
 
   const getCurrentData = () =>
     mode === "manual" ? getPayloadFromManual() : uploadedRows;
-
-  // --- Submit handler ---
   const handleSubmit = async () => {
     setError("");
     setResult(null);
@@ -189,12 +165,8 @@ export default function DataUpload() {
 
     setLoading(true);
     try {
-      const payload = { data: { data } };
-      const res = await axios.post(`${GATEWAY_URL}/api/forecast`, payload, {
-        headers: { "Content-Type": "application/json" },
-        timeout: 60000,
-      });
-      setResult(res.data);
+      const result = await uploadSalesData({ data });
+      setResult(result);
     } catch (err) {
       console.error(err);
       setError(err?.response?.data?.error || err.message || "Request failed");
@@ -203,7 +175,6 @@ export default function DataUpload() {
     }
   };
 
-  // --- Chart data ---
   const chartDataFromResult = () => {
     if (!result || !Array.isArray(result.forecast)) return [];
     return result.forecast.map((f) => ({
@@ -211,8 +182,6 @@ export default function DataUpload() {
       sales: Number(f.sales),
     }));
   };
-
-  // --- Sample data helper ---
   const useSampleManual = () => {
     setRows([
       { date: "2025-01-10", price: 100, quantity: 5 },
@@ -226,13 +195,13 @@ export default function DataUpload() {
     <div className="max-w-3xl mx-auto p-6">
       <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">📊 Sales Analyzer</h1>
+          <h1 className="text-xl font-bold">Sales Analyzer</h1>
           <a
             href="/sample_sales_data.csv"
             download
             className="text-sm text-blue-600 hover:underline"
           >
-            ⬇️ Download sample CSV file
+            Download sample CSV file
           </a>
         </div>
 
@@ -391,7 +360,7 @@ export default function DataUpload() {
               </div>
 
               <details className="mt-4 bg-white p-2 rounded">
-                <summary className="cursor-pointer">📄 Raw JSON</summary>
+                <summary className="cursor-pointer">Raw JSON</summary>
                 <pre className="mt-2 text-xs overflow-auto max-h-48">
                   {JSON.stringify(result, null, 2)}
                 </pre>

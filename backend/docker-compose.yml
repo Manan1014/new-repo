@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - DATA_SERVICE_URL=http://data-service:5001
+      - AI_SERVICE_URL=http://ai-service:5002
+    depends_on:
+      - data-service
+      - ai-service
+
+  data-service:
+    build: ./data-service
+    ports:
+      - "5001:5001"
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "5002:5002"

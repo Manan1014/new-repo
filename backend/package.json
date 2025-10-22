@@ -1,0 +1,21 @@
+{
+  "name": "ssas-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"nodemon gateway/index.js\" \"nodemon data-service/index.js\" \"nodemon ai-service/index.js\""
+  },
+
+  
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "mysql2": "^3.15.2"
+  },
+  "description": "",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

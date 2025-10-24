@@ -18,7 +18,7 @@ const openai = process.env.OPENAI_API_KEY
 
 app.get("/", (req, res) => res.send("AI + ML service running"));
 app.post("/forecast", async (req, res) => {
-  const { data } = req.body;
+  const data = req.body;
 
   if (!data || !data.data || data.data.length === 0) {
     return res.status(400).json({ error: "Missing data" });
@@ -66,9 +66,10 @@ app.post("/forecast", async (req, res) => {
   } catch (err) {
     console.error("ML Forecast error:", err.message);
   }
-  const avg = forecast.length > 0 
-    ? forecast.reduce((sum, item) => sum + item.sales, 0) / forecast.length 
-    : 0;
+  const avg =
+    forecast.length > 0
+      ? forecast.reduce((sum, item) => sum + item.sales, 0) / forecast.length
+      : 0;
 
   const insight =
     avg > 10000

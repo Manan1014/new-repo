@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { loginUser, registerUser, verifyToken } from "../api";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -14,38 +15,34 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-
-  const API_BASE_URL = 'http://localhost:4000/api';
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   // Set up axios interceptor to include token in requests
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } else {
-      delete axios.defaults.headers.common['Authorization'];
+      delete axios.defaults.headers.common["Authorization"];
     }
   }, [token]);
 
   // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem("token");
       if (storedToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/verify`, {
-            token: storedToken
-          });
-          if (response.data.valid) {
-            setUser(response.data.user);
+          const response = await verifyToken(storedToken);
+          if (response.valid) {
+            setUser(response.user);
             setToken(storedToken);
           } else {
-            localStorage.removeItem('token');
+            localStorage.removeItem("token");
             setToken(null);
           }
         } catch (error) {
-          console.error('Token verification failed:', error);
-          localStorage.removeItem('token');
+          console.error("Token verification failed:", error);
+          localStorage.removeItem("token");
           setToken(null);
         }
       }
@@ -57,14 +54,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password
-      });
+      const response = await loginUser(email, password);
 
-      const { token: newToken, user: userData } = response.data;
+      const { token: newToken, user: userData } = response;
 
-      localStorage.setItem('token', newToken);
+      localStorage.setItem("token", newToken);
       setToken(newToken);
       setUser(userData);
 
@@ -72,22 +66,18 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'Login failed'
+        error: error.response?.data?.error || "Login failed",
       };
     }
   };
 
   const register = async (name, email, password) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
-        name,
-        email,
-        password
-      });
+      const response = await registerUser(name, email, password);
 
-      const { token: newToken, user: userData } = response.data;
+      const { token: newToken, user: userData } = response;
 
-      localStorage.setItem('token', newToken);
+      localStorage.setItem("token", newToken);
       setToken(newToken);
       setUser(userData);
 
@@ -95,30 +85,28 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'Registration failed'
+        error: error.response?.data?.error || "Registration failed",
       };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
+    delete axios.defaults.headers.common["Authorization"];
   };
 
   const refreshUser = async () => {
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem("token");
     if (storedToken) {
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/verify`, {
-          token: storedToken
-        });
-        if (response.data.valid) {
-          setUser(response.data.user);
+        const response = await verifyToken(storedToken);
+        if (response.valid) {
+          setUser(response.user);
         }
       } catch (error) {
-        console.error('Failed to refresh user data:', error);
+        console.error("Failed to refresh user data:", error);
       }
     }
   };
@@ -131,12 +119,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
     refreshUser,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

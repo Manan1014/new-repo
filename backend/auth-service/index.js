@@ -10,11 +10,11 @@ const app = express();
 app.use(express.json());
 
 // Add basic health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    service: 'Auth Service',
-    timestamp: new Date().toISOString()
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    service: "Auth Service",
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -28,7 +28,8 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
 // Register endpoint
 app.post("/register", async (req, res) => {
@@ -40,7 +41,9 @@ app.post("/register", async (req, res) => {
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters" });
     }
 
     // Check if user already exists
@@ -50,7 +53,9 @@ app.post("/register", async (req, res) => {
     );
 
     if (existingUsers.length > 0) {
-      return res.status(400).json({ error: "User already exists with this email" });
+      return res
+        .status(400)
+        .json({ error: "User already exists with this email" });
     }
 
     // Hash password
@@ -63,18 +68,15 @@ app.post("/register", async (req, res) => {
     );
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: result.insertId, email },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
+    const token = jwt.sign({ userId: result.insertId, email }, JWT_SECRET, {
+      expiresIn: "24h",
+    });
 
     res.status(201).json({
       message: "User registered successfully",
       token,
-      user: { id: result.insertId, name, email }
+      user: { id: result.insertId, name, email },
     });
-
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "Registration failed" });
@@ -109,19 +111,17 @@ app.post("/login", async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "24h",
+    });
 
     res.json({
       message: "Login successful",
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email },
     });
-
   } catch (error) {
+    console.log("error", error);
     console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
   }
@@ -137,7 +137,7 @@ app.post("/verify", async (req, res) => {
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Get user details
     const [users] = await pool.query(
       "SELECT id, name, email FROM users WHERE id = ?",
@@ -150,9 +150,8 @@ app.post("/verify", async (req, res) => {
 
     res.json({
       valid: true,
-      user: users[0]
+      user: users[0],
     });
-
   } catch (error) {
     res.status(401).json({ error: "Invalid token" });
   }
@@ -161,16 +160,17 @@ app.post("/verify", async (req, res) => {
 const PORT = process.env.AUTH_SERVICE_PORT || 5003;
 
 // Test database connection on startup
-pool.getConnection()
-  .then(connection => {
-    console.log('✅ Auth Service: Database connected successfully');
+pool
+  .getConnection()
+  .then((connection) => {
+    console.log("Auth Service: Database connected successfully");
     connection.release();
   })
-  .catch(err => {
-    console.error('❌ Auth Service: Database connection failed:', err.message);
+  .catch((err) => {
+    console.error("Auth Service: Database connection failed:", err.message);
   });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Auth Service running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(` Auth Service running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
 });

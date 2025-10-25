@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -94,4 +94,60 @@ export const getAnalyticsCategories = async () => {
 export const getAnalyticsInsights = async () => {
   const res = await api.get("/api/analytics/insights");
   return res.data;
+};
+
+// Auth API endpoints
+export const loginUser = async (email, password) => {
+  const res = await api.post("/api/auth/login", { email, password });
+  return res.data;
+};
+
+export const registerUser = async (name, email, password) => {
+  const res = await api.post("/api/auth/register", { name, email, password });
+  return res.data;
+};
+
+export const verifyToken = async (token) => {
+  const res = await api.post("/api/auth/verify", { token });
+  return res.data;
+};
+
+// Monthly Data API endpoints
+export const getMonthlyData = async (year = null, month = null) => {
+  const params = {};
+  if (year) params.year = year;
+  if (month) params.month = month;
+  const res = await api.get("/api/monthly-data", { params });
+  return res.data;
+};
+
+export const getMonthTransactions = async (year, month) => {
+  const res = await api.get(`/api/monthly-data/${year}/${month}/transactions`);
+  return res.data;
+};
+
+export const deleteMonthlyData = async (year, month) => {
+  const res = await api.delete(`/api/monthly-data/${year}/${month}`);
+  return res.data;
+};
+
+// Download analytics report (PDF)
+export const downloadAnalyticsReport = async () => {
+  const response = await api.get("/api/analytics/report", {
+    responseType: "blob",
+  });
+
+  // response.data is already a blob when using responseType: "blob"
+  const blob = response.data;
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `analytics-report-${
+    new Date().toISOString().split("T")[0]
+  }.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 };

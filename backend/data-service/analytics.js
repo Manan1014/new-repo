@@ -133,31 +133,62 @@ export const getAnalyticsTrends = async (userId) => {
   }
 };
 
-// Get category breakdown
+// Get category breakdown (showing products)
 export const getAnalyticsCategories = async (userId) => {
   try {
-    const [categories] = await pool.query(
+    // Try to get products first
+    const [products] = await pool.query(
       `SELECT 
-        category as name,
+        COALESCE(NULLIF(product_name, ''), 'Unknown Product') as name,
         SUM(total_amount) as value
       FROM sales_transactions st
       JOIN monthly_sales_data msd ON st.monthly_data_id = msd.id
       WHERE st.user_id = ?
-      GROUP BY category
-      ORDER BY value DESC`,
+      GROUP BY product_name
+      ORDER BY value DESC
+      LIMIT 10`,
       [userId]
     );
 
-    const total = categories.reduce(
-      (sum, cat) => sum + parseFloat(cat.value),
+    if (
+      products.length === 0 ||
+      (products.length === 1 && products[0].name === "Unknown Product")
+    ) {
+      const [categories] = await pool.query(
+        `SELECT 
+          category as name,
+          SUM(total_amount) as value
+        FROM sales_transactions st
+        JOIN monthly_sales_data msd ON st.monthly_data_id = msd.id
+        WHERE st.user_id = ?
+        GROUP BY category
+        ORDER BY value DESC`,
+        [userId]
+      );
+
+      const total = categories.reduce(
+        (sum, cat) => sum + parseFloat(cat.value),
+        0
+      );
+
+      return categories.map((cat) => ({
+        name: cat.name,
+        value: parseFloat(cat.value),
+        percentage:
+          total > 0 ? ((parseFloat(cat.value) / total) * 100).toFixed(0) : 0,
+      }));
+    }
+
+    const total = products.reduce(
+      (sum, prod) => sum + parseFloat(prod.value),
       0
     );
 
-    return categories.map((cat) => ({
-      name: cat.name,
-      value: parseFloat(cat.value),
+    return products.map((prod) => ({
+      name: prod.name,
+      value: parseFloat(prod.value),
       percentage:
-        total > 0 ? ((parseFloat(cat.value) / total) * 100).toFixed(0) : 0,
+        total > 0 ? ((parseFloat(prod.value) / total) * 100).toFixed(0) : 0,
     }));
   } catch (error) {
     console.error("Error getting analytics categories:", error);

@@ -13,7 +13,9 @@ import {
 
 export default function DataUpload() {
   const [mode, setMode] = useState("manual");
-  const [rows, setRows] = useState([{ date: "", price: "", quantity: "" }]);
+  const [rows, setRows] = useState([
+    { date: "", price: "", quantity: "", product: "" },
+  ]);
   const [uploadedRows, setUploadedRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -34,7 +36,10 @@ export default function DataUpload() {
       const parsed = XLSX.SSF.parse_date_code(dateValue);
       if (parsed) {
         const { y, m, d } = parsed;
-        dateValue = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        dateValue = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(
+          2,
+          "0"
+        )}`;
       }
     } else if (dateValue instanceof Date) {
       dateValue = dateValue.toISOString().split("T")[0];
@@ -55,7 +60,7 @@ export default function DataUpload() {
   };
 
   const handleAddRow = () =>
-    setRows([...rows, { date: "", price: "", quantity: "" }]);
+    setRows([...rows, { date: "", price: "", quantity: "", product: "" }]);
 
   const handleRemoveRow = (idx) => setRows(rows.filter((_, i) => i !== idx));
 
@@ -184,9 +189,9 @@ export default function DataUpload() {
   };
   const useSampleManual = () => {
     setRows([
-      { date: "2025-01-10", price: 100, quantity: 5 },
-      { date: "2025-02-12", price: 120, quantity: 3 },
-      { date: "2025-03-15", price: 90, quantity: 4 },
+      { date: "2025-01-10", price: 100, quantity: 5, product: "Product A" },
+      { date: "2025-02-12", price: 120, quantity: 3, product: "Product B" },
+      { date: "2025-03-15", price: 90, quantity: 4, product: "Product A" },
     ]);
     setMode("manual");
   };
@@ -232,15 +237,31 @@ export default function DataUpload() {
 
         {mode === "manual" ? (
           <div className="space-y-3">
+            <div className="grid grid-cols-5 gap-2 mb-2 text-sm font-semibold text-gray-700">
+              <div>Date</div>
+              <div>Product Name</div>
+              <div>Price</div>
+              <div>Quantity</div>
+              <div>Actions</div>
+            </div>
             {rows.map((r, i) => (
-              <div key={i} className="grid grid-cols-4 gap-2 items-center">
+              <div key={i} className="grid grid-cols-5 gap-2 items-center">
                 <input
                   type="date"
                   value={r.date}
                   onChange={(e) =>
                     handleManualChange(i, "date", e.target.value)
                   }
-                  className="border p-2 rounded col-span-1"
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Product Name"
+                  value={r.product}
+                  onChange={(e) =>
+                    handleManualChange(i, "product", e.target.value)
+                  }
+                  className="border p-2 rounded"
                 />
                 <input
                   type="number"
@@ -249,7 +270,7 @@ export default function DataUpload() {
                   onChange={(e) =>
                     handleManualChange(i, "price", e.target.value)
                   }
-                  className="border p-2 rounded col-span-1"
+                  className="border p-2 rounded"
                 />
                 <input
                   type="number"
@@ -258,19 +279,19 @@ export default function DataUpload() {
                   onChange={(e) =>
                     handleManualChange(i, "quantity", e.target.value)
                   }
-                  className="border p-2 rounded col-span-1"
+                  className="border p-2 rounded"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleRemoveRow(i)}
-                    className="px-2 py-1 bg-red-100 rounded"
+                    className="px-2 py-1 bg-red-100 rounded text-sm hover:bg-red-200"
                   >
                     Remove
                   </button>
                   {i === rows.length - 1 && (
                     <button
                       onClick={handleAddRow}
-                      className="px-2 py-1 bg-gray-100 rounded"
+                      className="px-2 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200"
                     >
                       Add
                     </button>
@@ -290,10 +311,13 @@ export default function DataUpload() {
             <div className="text-sm text-gray-600 mt-1">
               <p>
                 Accepts Excel (.xlsx, .xls) or CSV files with columns: date,
-                price, quantity
+                price, quantity, product (optional)
               </p>
               <p className="mt-1">
                 <strong>Date format:</strong> YYYY-MM-DD (e.g., 2025-01-10)
+              </p>
+              <p className="mt-1">
+                <strong>Product:</strong> Name of the product/item being sold
               </p>
             </div>
             {uploadedRows.length > 0 && (
@@ -314,7 +338,7 @@ export default function DataUpload() {
           </button>
           <button
             onClick={() => {
-              setRows([{ date: "", price: "", quantity: "" }]);
+              setRows([{ date: "", price: "", quantity: "", product: "" }]);
               setUploadedRows([]);
               setResult(null);
               setError("");

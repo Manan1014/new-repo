@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import Header from '../components/Header';
-import DataUpload from '../components/DataUpload';
-import { testDatabase } from '../api';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import Header from "../components/Header";
+import DataUpload from "../components/DataUpload";
+import { testDatabase } from "../api";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -15,8 +15,8 @@ const DashboardPage = () => {
         const result = await testDatabase();
         setDbStatus(result);
       } catch (error) {
-        console.error('Database test failed:', error);
-        setDbStatus({ error: 'Failed to connect to database' });
+        console.error("Database test failed:", error);
+        setDbStatus({ error: "Failed to connect to database" });
       } finally {
         setLoading(false);
       }

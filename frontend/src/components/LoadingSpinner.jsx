@@ -1,18 +1,10 @@
-import React from 'react';
-
-const LoadingSpinner = ({ message = "Loading...", size = "medium" }) => {
-  const sizeClasses = {
-    small: "h-8 w-8",
-    medium: "h-16 w-16",
-    large: "h-24 w-24"
-  };
-
+const LoadingSpinner = ({ message = "Loading..." }) => {
   return (
-    <div className="flex items-center justify-center">
-      <div className="text-center">
-        <div className={`animate-spin rounded-full border-b-2 border-blue-500 mx-auto ${sizeClasses[size]}`}></div>
-        <p className="mt-4 text-gray-600 font-medium">{message}</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="relative">
+        <div className="w-16 h-16 border-4 border-blue-200 dark:border-gray-700 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin"></div>
       </div>
+      <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">{message}</p>
     </div>
   );
 };

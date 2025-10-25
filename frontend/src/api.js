@@ -74,3 +74,24 @@ export const deleteUserAccount = async (password) => {
   const res = await api.delete("/api/user/account", { data: { password } });
   return res.data;
 };
+
+// Analytics API endpoints
+export const getAnalyticsSummary = async () => {
+  const res = await api.get("/api/analytics/summary");
+  return res.data;
+};
+
+export const getAnalyticsTrends = async () => {
+  const res = await api.get("/api/analytics/trends");
+  return res.data;
+};
+
+export const getAnalyticsCategories = async () => {
+  const res = await api.get("/api/analytics/categories");
+  return res.data;
+};
+
+export const getAnalyticsInsights = async () => {
+  const res = await api.get("/api/analytics/insights");
+  return res.data;
+};

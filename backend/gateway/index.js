@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(morgan("dev"));
 
 const DATA_SERVICE_URL = "http://localhost:5001";
@@ -295,6 +295,64 @@ app.delete("/api/user/account", authenticateToken, async (req, res) => {
     res.status(err.response?.status || 500).json(
       err.response?.data || { error: "Failed to delete account" }
     );
+  }
+});
+
+// Analytics Endpoints
+
+// Get analytics summary
+app.get("/api/analytics/summary", authenticateToken, async (req, res) => {
+  try {
+    const response = await axios.get(`${DATA_SERVICE_URL}/analytics/summary/${req.user.userId}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get analytics summary", details: err.message });
+  }
+});
+
+// Get analytics trends
+app.get("/api/analytics/trends", authenticateToken, async (req, res) => {
+  try {
+    const response = await axios.get(`${DATA_SERVICE_URL}/analytics/trends/${req.user.userId}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get analytics trends", details: err.message });
+  }
+});
+
+// Get analytics categories
+app.get("/api/analytics/categories", authenticateToken, async (req, res) => {
+  try {
+    const response = await axios.get(`${DATA_SERVICE_URL}/analytics/categories/${req.user.userId}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get analytics categories", details: err.message });
+  }
+});
+
+// Get analytics insights
+app.get("/api/analytics/insights", authenticateToken, async (req, res) => {
+  try {
+    const response = await axios.get(`${DATA_SERVICE_URL}/analytics/insights/${req.user.userId}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get analytics insights", details: err.message });
+  }
+});
+
+// Download analytics report (PDF)
+app.get("/api/analytics/report", authenticateToken, async (req, res) => {
+  try {
+    const response = await axios.get(`${DATA_SERVICE_URL}/analytics/report/${req.user.userId}`, {
+      responseType: 'arraybuffer'
+    });
+
+    // Forward PDF headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', response.headers['content-disposition'] || `attachment; filename=analytics-report.pdf`);
+    res.send(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to generate report", details: err.message });
   }
 });
 

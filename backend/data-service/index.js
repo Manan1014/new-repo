@@ -10,11 +10,18 @@ import {
   updateUserPreferences,
   deleteUserAccount
 } from "./user-settings.js";
+import {
+  getAnalyticsSummary,
+  getAnalyticsTrends,
+  getAnalyticsCategories,
+  getAnalyticsInsights
+} from "./analytics.js";
+import { generateAnalyticsReport } from "./report-generator.js";
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 const pool = mysql.createPool({
   host: process.env.CONTENT_DB_HOST || "localhost",
   user: process.env.CONTENT_DB_USER || "root",
@@ -221,6 +228,77 @@ app.delete("/user/:userId/account", async (req, res) => {
     } else {
       res.status(500).json({ error: "Failed to delete account", details: error.message });
     }
+  }
+});
+
+// Analytics Endpoints - Using Real Data from Database
+
+// Get analytics summary
+app.get("/analytics/summary/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const summary = await getAnalyticsSummary(parseInt(userId));
+    res.json(summary);
+  } catch (error) {
+    console.error("Get analytics summary error:", error);
+    res.status(500).json({ error: "Failed to get analytics summary", details: error.message });
+  }
+});
+
+// Get analytics trends
+app.get("/analytics/trends/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const trends = await getAnalyticsTrends(parseInt(userId));
+    res.json(trends);
+  } catch (error) {
+    console.error("Get analytics trends error:", error);
+    res.status(500).json({ error: "Failed to get analytics trends", details: error.message });
+  }
+});
+
+// Get analytics categories
+app.get("/analytics/categories/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const categories = await getAnalyticsCategories(parseInt(userId));
+    res.json(categories);
+  } catch (error) {
+    console.error("Get analytics categories error:", error);
+    res.status(500).json({ error: "Failed to get analytics categories", details: error.message });
+  }
+});
+
+// Get analytics insights
+app.get("/analytics/insights/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const insights = await getAnalyticsInsights(parseInt(userId));
+    res.json(insights);
+  } catch (error) {
+    console.error("Get analytics insights error:", error);
+    res.status(500).json({ error: "Failed to get analytics insights", details: error.message });
+  }
+});
+
+// Generate PDF report
+app.get("/analytics/report/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Generate PDF report
+    const pdfBuffer = await generateAnalyticsReport(parseInt(userId));
+
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    // Send PDF
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error("Generate report error:", error);
+    res.status(500).json({ error: "Failed to generate report", details: error.message });
   }
 });
 

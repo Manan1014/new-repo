@@ -77,7 +77,7 @@ const AnalyticsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto py-6 sm:px-6 lg:px-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-center">
               <svg
@@ -110,7 +110,7 @@ const AnalyticsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className=" mx-auto py-6 sm:px-6 lg:px-8">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <p className="text-yellow-800">
               No analytics data available yet. Upload some sales data to see
@@ -126,7 +126,7 @@ const AnalyticsPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className=" mx-auto py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
